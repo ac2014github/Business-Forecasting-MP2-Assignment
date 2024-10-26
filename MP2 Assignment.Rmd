@@ -1,0 +1,97 @@
+---
+title: "MP2 Assignment"
+author: "Adrian Chan"
+date: "2024-10-24"
+output: html_document
+---
+
+```{r}
+
+library(fpp)
+library(fpp2)
+library(readr)
+
+quotes<-read.csv("C:/Users/Adrian/Documents/Business Forecasting/insurance.csv")
+quotes
+#imports the csv file through path
+
+quotes_ts<-ts(quotes$Quotes,start=c(2002,1),frequency=12)
+head(quotes_ts)
+quotes_ts
+#this makes the quotes column of the csv file a time series
+
+plot(quotes_ts,main="Quotes",ylab="Total",xlab="Month and Year")
+#this is an initial plot of the data
+
+#The dataset seems to spike at the beginning of each year, showing a seasonal trend
+
+Acf(quotes_ts)
+
+quote_decomp<-stl(quotes_ts,s.window="periodic")
+plot(quote_decomp)
+attributes(quote_decomp)
+#the Acf and decomposition prove that there is a seasonal trend to the data where Quotes sees a spike every 12 months 
+
+#Will use RMSE to determine accuracy
+
+naive_forecast<-naive(quotes_ts,12)
+plot(naive_forecast)
+#this naive forecast forecasts the next 12 months as the previous historical data point, usually used as a benchmark or baseline for other forecasts 
+
+mean_forecast<-meanf(quotes_ts,12)
+plot(mean_forecast)
+#the mean forecast takes the mean of the historical data and uses that to forecast the next 12 months of quotes
+
+es_forecast<-ets(quotes_ts)
+plot(es_forecast)
+forecast_quotes<-forecast(es_forecast,12)
+plot(forecast_quotes)
+#this forecast method uses exponential smoothing, which puts more weight on the more recent data points to forecast the next 12 months of quotes
+
+HW_forecast<-HoltWinters(quotes_ts)
+plot(HW_forecast)
+
+HW_model<-HoltWinters(quotes_ts)
+HW_forecast<-forecast(HW_model,12)
+plot(HW_forecast)
+#the Holts-Winters method takes into consideration the seasonal trend of the data when forecasting the quotes for the next 12 months
+
+f_stl<-forecast(quote_decomp)
+
+f_stl<-forecast(quote_decomp,h=12)
+f_stl
+plot(f_stl)
+
+seasadj(quote_decomp)
+#This decomposition model assumes that the data points are related to one another and shows the seasonal adjusted forecast for the next 12 months
+
+decomp_quote<-decompose(quotes_ts)
+attributes(decomp_quote)
+
+seasadj(decomp_quote)
+#This is another decomposition model that takes seasonal trend into account for the next 12 months.
+
+accuracy(mean_forecast)
+
+accuracy(naive_forecast)
+
+accuracy(es_forecast)
+
+accuracy(HW_forecast)
+
+accuracy(f_stl)
+#These accuracy measures show how accurate the forecasts are for each model. According to the RMSE, the decomposition model is the most accurate as it has the lowest RMSE.
+
+forecast_naive<-forecast(naive_forecast,12)
+print(forecast_naive)
+plot(forecast_naive)
+# I used this forecast as a benchmark to show the difference between the previous data point and the forecast model that takes seasonal trend into account
+
+forecast_stl<-forecast(f_stl,12)
+print(forecast_stl)
+plot(forecast_stl)
+#This model takes into consideration the fact that there are spikes every 12 months in the data and that it has the lowest RMSE, meaning it is relatively more accurate than the other forecast models.
+
+```
+
+
